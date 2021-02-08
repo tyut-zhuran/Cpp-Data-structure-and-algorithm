@@ -111,11 +111,20 @@ public:
 	{
 		postorder(root);
 	}
+	void iterativePostorder();
+
+
+
 
 	T* search(const T& el) const
 	{
 		return search(root, el);
 	}
+
+	//合并删除
+	void deleteByMerging(BSTNode<T>*& node);
+	void findAndDeleteByMerging(const T & el);
+
 
 protected:
 	BSTNode<T>* root;
@@ -137,9 +146,28 @@ protected:
 	}
 };
 
+//将el插入二叉查找树
 template <class T>
 void BST<T>::insert(const T& el)
 {
+	BSTNode<T>* p = root, * prev = 0;
+	while (p != 0)
+	{
+		prev = p;
+		if (el < p->el)
+		{
+			p = p->left;
+		}
+		else
+			p = p->right;
+	}
+	//退出while后,prev指向的是要插入节点的父节点
+	if (root == 0)
+		root = new BSTNode<T>(el);
+	else if (el < prev->el)
+		prev->left = new BSTNode<T>(el);
+	else
+		prev->right = new BSTNode<T>(el);
 }
 
 
@@ -217,6 +245,7 @@ void BST<T>::postorder(BSTNode<T>* p)
 }
 
 //非递归的前序遍历VLR
+//利用栈数据结构来模拟递归时的运行时栈
 template<class T>
 void BST<T>::iterativePreorder()
 {
@@ -241,6 +270,60 @@ void BST<T>::iterativePreorder()
 	}
 }
 
+
+
+
+
+//非递归的后序遍历
+//一种实现方法是从前序遍历中修改：因为前序与后序的访问顺序正好相反，所以可以将前序中的
+//visit()操作替换成入栈（再新建一个栈），而后在遍历完成后再依次出栈并调用visit（）
+
+//这里使用另外一种方法
+template<class T>
+void BST<T>::iterativePostorder()
+{
+	Stack<BSTNode<T>*> travStack;
+	BSTNode<T>* p = root, *q = root;
+	while (p != 0)
+	{
+		//p指向正在遍历的树，于是先将其指向最深处
+		for (; p->left != 0; p = p->left)
+		{
+			travStack.push(p);
+		}
+
+		//p始终指向正在遍历的树，而q始终刚刚遍历完成的树
+		//若p->right == q，说明p的左右两边都已经访问过了
+		while (p->right == 0 || p->right == q)
+		{
+			visit(p);
+			q = p;
+			if (travStack.empty())
+				return;
+			p = travStack.pop();
+		}
+		travStack.push(p);
+		p = p->right;
+	}
+}
+
+
+
+
+
+
+
+//合并删除，传入要删除节点的指针的引用（其父节点的元素left或right）
+template<class T>
+void BST<T>::deleteByMerging(BSTNode<T>*& node)
+{
+
+}
+
+//传入要删除的元素
+template<class T>
+void BST<T>::findAndDeleteByMerging(const T& el)
+{}
 
 # endif
 
