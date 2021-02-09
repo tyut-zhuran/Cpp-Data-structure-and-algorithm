@@ -20,7 +20,7 @@ public:
 	T pop()
 	{
 		//STL中的栈的pop()不会删除元素需要重写
-		T tmp = top();
+		T tmp = stack<T>::top();
 		stack<T>::pop();
 		return tmp;
 	}
@@ -33,14 +33,14 @@ class Queue : public queue<T>
 public:
 	T dequeue()
 	{
-		T tmp = front();
+		T tmp = queue<T> ::front();
 		queue<T>::pop();
 		return tmp;
 	}
 
 	void enqueue(const T& el)
 	{
-		push(el);
+		queue<T>::push(el);
 	}
 };
 
@@ -125,6 +125,18 @@ public:
 	void deleteByMerging(BSTNode<T>*& node);
 	void findAndDeleteByMerging(const T & el);
 
+	//复制删除
+	void deleteByCopying(BSTNode<T>*& node);
+	void findAndDeleteByCopying(const T& el);
+
+	//广度优先遍历
+	void breadthFirst();
+
+
+
+
+
+
 
 protected:
 	BSTNode<T>* root;
@@ -138,11 +150,10 @@ protected:
 	//LRV
 	void postorder(BSTNode<T>*);
 
-	//广度优先遍历
-	void breadthFirst();
-	virtual visit(BSTNode<T>* p)
+
+	virtual void visit(BSTNode<T>* p)
 	{
-		cout << p->el >> ' ';
+		cout << p->el << ' ';
 	}
 };
 
@@ -249,8 +260,9 @@ void BST<T>::postorder(BSTNode<T>* p)
 template<class T>
 void BST<T>::iterativePreorder()
 {
-	Stack<BSTNode*> travStack;
+	Stack<BSTNode<T>*> travStack;
 	BSTNode<T>* p = root;
+	cout << endl;
 	if (p != 0)
 	{
 		travStack.push(p);
@@ -284,6 +296,7 @@ void BST<T>::iterativePostorder()
 {
 	Stack<BSTNode<T>*> travStack;
 	BSTNode<T>* p = root, *q = root;
+	cout << endl;
 	while (p != 0)
 	{
 		//p指向正在遍历的树，于是先将其指向最深处
@@ -317,13 +330,140 @@ void BST<T>::iterativePostorder()
 template<class T>
 void BST<T>::deleteByMerging(BSTNode<T>*& node)
 {
+	BSTNode<T>* tmp = node;
 
+	//若要删除的节点没有左节点，则直接将node指向右节点即可
+	if (node->left == 0)
+	{
+		node = node->right;
+	}
+	//没有右节点同理
+	else if (node->right == 0)
+	{
+		node = node->left;
+	}
+	else
+	{
+		//找到node左子树中的最大值，并将node的右子树挂在它上
+		tmp = node->left;
+		while (tmp->right != 0)
+			tmp = tmp->right;
+		//退出while后tmp指向node左子树中的最大值节点
+		
+		tmp->right = node->right;
+		
+		tmp = node;
+		node = node->left;
+	}
+	delete tmp;
 }
 
 //传入要删除的元素
 template<class T>
 void BST<T>::findAndDeleteByMerging(const T& el)
-{}
+{
+	BSTNode<T>* node = root, * prev = 0;
+	while (node != 0)
+	{
+		if (node->el == el)
+			break;
+		prev = node;
+		if (el < node->el)
+			node = node->left;
+		else
+			node = node->right;
+	}
+	
+	//若退出while时node不为0，说明找到了相应节点，且node指向的就是要删除的节点，prev指向其父节点
+	if (node != 0 && node->el == el)
+	{
+		if (node == root)
+		{
+			deleteByMerging(root);
+		}
+		else if (prev->left == node)
+		{
+			//注意该函数参数为引用 
+			deleteByMerging(prev->left);
+		}
+		else
+			deleteByMerging(prev->right);
+	}
+	else if (root != 0)
+		cout << "el = " << el << "is not in the tree\n";
+	else
+		cout << "the tree is empty!\n";
+}
+
+
+
+template<class T>
+void BST<T>::deleteByCopying(BSTNode<T>*& node)
+{
+	BSTNode<T>* tmp = node, * prev;
+	if (node->right == 0)
+		node = node->left;
+	else if (node->left == 0)
+		node = node->right;
+	else
+	{
+		//既有左子树又有右子树
+		tmp = node->left;
+		prev = node;
+		while (tmp->right != 0)
+		{
+			prev = tmp;
+			tmp = tmp->right;
+		}
+		//退出while后，tmp指向的是最大值节点，prev指向的是最大值的父节点
+		node->el = tmp->el;
+
+		//node的左子树没有右子树
+		if (prev == node)
+			prev->left = tmp->left;
+		else
+			prev->right = tmp->right;
+	}
+	delete tmp;
+}
+
+template<class T>
+void BST<T>::findAndDeleteByCopying(const T& el)
+{
+	BSTNode<T>* node = root, * prev = 0;
+	while (node != 0)
+	{
+		if (node->el == el)
+			break;
+		prev = node;
+		if (el < node->el)
+			node = node->left;
+		else
+			node = node->right;
+	}
+
+	//若退出while时node不为0，说明找到了相应节点，且node指向的就是要删除的节点，prev指向其父节点
+	if (node != 0 && node->el == el)
+	{
+		if (node == root)
+		{
+			deleteByCopying(root);
+		}
+		else if (prev->left == node)
+		{
+			//注意该函数参数为引用 
+			deleteByCopying(prev->left);
+		}
+		else
+			deleteByCopying(prev->right);
+	}
+	else if (root != 0)
+		cout << "el = " << el << "is not in the tree\n";
+	else
+		cout << "the tree is empty!\n";
+}
+
+
 
 # endif
 
